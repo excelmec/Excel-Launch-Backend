@@ -24,11 +24,10 @@ app.use('/launch', launchRoutes);
 app.use('/links', dynamicLinkRoutes);
 
 
-app.use('/:id', async (req: Request, res: Response) => {
+app.use('/', async (req: Request, res: Response) => {
   try {
-    const linkId = req.params.id;
 
-    const link = await prisma.dynamicLink.findUnique({ where: { id: linkId } });
+    const link = await prisma.dynamicLink.findFirst();
 
     if (!link) {
       return res.status(404).json({ error: 'Link not found' });
