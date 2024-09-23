@@ -1,37 +1,38 @@
-import express, { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
-import jwt from 'jsonwebtoken';
-import { validateToken } from '../middleware/authMiddleware';
+import express, { Request, Response } from "express";
+import { PrismaClient } from "@prisma/client";
+import jwt from "jsonwebtoken";
+import { validateToken } from "../middleware/authMiddleware";
 
 const router = express.Router();
 const prisma = new PrismaClient();
 const jwtSecret = process.env.SECRET_KEY || "";
 
-
-
-
-
 // Get launch status
-router.get('/status', async (req: Request, res: Response) => {
+router.get("/status", async (req: Request, res: Response) => {
   try {
     // Fetch launch status from the database
-    const launchStatus = await prisma.launchStatus.findUnique({ where: { id: 1 } });
+    const launchStatus = await prisma.launchStatus.findUnique({
+      where: { id: 1 },
+    });
 
     if (!launchStatus) {
-      return res.status(404).json({ error: 'Launch status not found' });
+      return res.status(404).json({ error: "Launch status not found" });
     }
 
     return res.status(200).json({ launchStatus });
   } catch (error) {
-    console.error('Error fetching launch status:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    console.error("Error fetching launch status:", error);
+    return res.status(500).json({ error: "Internal server error" });
   }
 });
 
 // Update website status (Admin role required)
-router.post('/website',validateToken,  async (req: Request, res: Response) => {
+router.post("/website/:id", async (req: Request, res: Response) => {
   try {
-
+    const id = req.params.id;
+    if (id != process.env.API_KEY || !process.env.API_KEY || !id) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
     const newStatus = req.body.websiteStatus;
     const websiteStatus = newStatus;
 
@@ -40,18 +41,19 @@ router.post('/website',validateToken,  async (req: Request, res: Response) => {
       update: { websiteStatus },
       create: { id: 1, websiteStatus },
     });
-
-    return res.status(201).json({ message: 'Website status updated successfully' });
+    console.log("Website status updated successfully");
+    return res
+      .status(201)
+      .json({ message: "Website status updated successfully" });
   } catch (error) {
-    console.error('Error setting website status:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    console.error("Error setting website status:", error);
+    return res.status(500).json({ error: "Internal server error" });
   }
 });
 
 // Update mascot status (Admin role required)
-router.post('/mascot', validateToken, async (req: Request, res: Response) => {
+router.post("/mascot", validateToken, async (req: Request, res: Response) => {
   try {
-  
     const newStatus = req.body.mascotStatus;
     const mascotStatus = newStatus;
 
@@ -61,10 +63,12 @@ router.post('/mascot', validateToken, async (req: Request, res: Response) => {
       create: { id: 1, mascotStatus },
     });
 
-    return res.status(201).json({ message: 'Mascot status updated successfully' });
+    return res
+      .status(201)
+      .json({ message: "Mascot status updated successfully" });
   } catch (error) {
-    console.error('Error setting mascot status:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    console.error("Error setting mascot status:", error);
+    return res.status(500).json({ error: "Internal server error" });
   }
 });
 
